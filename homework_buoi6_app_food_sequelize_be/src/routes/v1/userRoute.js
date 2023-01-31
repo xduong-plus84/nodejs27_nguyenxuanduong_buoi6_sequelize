@@ -7,16 +7,17 @@ const {
   createUser,
   editUser,
   deleteUser,
+  createOrder,
 } = require("../../controllers/userController");
 
-// 5 phuowng thức CRUD
+// 5 methods CRUD
 userRoute.get("/getAllUser", getAllUser);
 userRoute.get("/getOneUser/:id", getOneUser);
 userRoute.post("/createUser", createUser);
 userRoute.put("/editUser/:id", editUser);
 userRoute.delete("/deleteUser/:id", deleteUser);
 
-// tạo API phương thức PUT
-// userRoute.put("/updateUser",(req,res)=>{});
+// xử lý thêm order
+userRoute.post("/createOrder", createOrder);
 
 module.exports = userRoute;

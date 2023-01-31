@@ -9,9 +9,7 @@ app.use(express.json());
 const cors = require("cors");
 app.use(cors());
 
-app.listen(8080, () => {
-  console.log(`Listening on port ${port}`);
-});
+app.listen(port);
 
 const rootRoute = require("./routes/rootRoute");
 app.use("/api", rootRoute);

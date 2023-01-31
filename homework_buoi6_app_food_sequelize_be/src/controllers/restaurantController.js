@@ -2,6 +2,7 @@
 const sequelize = require("../models/index");
 const initModels = require("../models/init-models");
 const modelSequelize = initModels(sequelize);
+const moment = require("moment");
 
 // 5 methods CRUD
 const getRestaurantAll = async (req, res) => {
@@ -18,9 +19,7 @@ const getRestaurantOne = async (req, res) => {
     let { id } = req.params;
 
     let restaurantOne = await modelSequelize.restaurant.findOne({
-      where: {
-        res_id: id,
-      },
+      where: { res_id: id },
     });
 
     if (restaurantOne) {
@@ -99,12 +98,63 @@ const deleteRestaurant = async (req, res) => {
   }
 };
 
-// lấy nhà hàng và số user đã like nhà hàng
+// xử lý like nhà hàng
+const likeRestaurant = async (req, res) => {
+  try {
+    let { user_id, res_id } = req.body;
+
+    let dataOne = await modelSequelize.like_res.findOne({
+      where: {
+        res_id,
+        user_id,
+      },
+    });
+
+    if (dataOne) {
+      res.status(200).send("Người dùng đã like");
+    } else {
+      let date_like = moment().format("YYYY-MM-DD HH:mm:ss").toString();
+      let model = { user_id, res_id, date_like };
+      await modelSequelize.like_res.create(model);
+      res.status(200).send("Like Restaurant thành công");
+    }
+  } catch (error) {
+    res.status(500).send("Backend error");
+  }
+};
+// xử lý unlike nhà hàng
+const unLikeRestaurant = async (req, res) => {
+  try {
+    let { user_id, res_id } = req.body;
+
+    let dataOne = await modelSequelize.like_res.findOne({
+      where: {
+        res_id,
+        user_id,
+      },
+    });
+
+    if (dataOne) {
+      await modelSequelize.like_res.destroy({
+        where: {
+          res_id,
+          user_id,
+        },
+      });
+      res.status(200).send("Unlike Restaurant thành công");
+    } else {
+      res.status(400).send("Không tìm thấy người dùng hoặc nhà hàng");
+    }
+  } catch (error) {
+    res.status(500).send("Backend error");
+  }
+};
+// lấy danh sách like và user của tất cả nhà hàng
 const getAllRestaurantAndUserLike = async (req, res) => {
   try {
     // let dataAll = await modelSequelize.like_res.findAll({
     //   include: ["user", "re"],
-    //   include: ["re", "user"],
+    //   // include: ["re", "user"],
     // });
 
     let dataAll = await modelSequelize.restaurant.findAll({
@@ -116,21 +166,68 @@ const getAllRestaurantAndUserLike = async (req, res) => {
     res.status(500).send("Backend error");
   }
 };
+// lấy danh sách like và user của một nhà hàng
 const getOneRestaurantAndUserLike = async (req, res) => {
   try {
     let { id } = req.params;
 
     let dataOne = await modelSequelize.restaurant.findOne({
+      where: { res_id: id },
+      include: ["user_id_users"],
+    });
+
+    res.status(200).send(dataOne);
+  } catch (error) {
+    res.status(500).send("Backend error");
+  }
+};
+
+// thêm đánh giá
+const rateRestaurant = async (req, res) => {
+  try {
+    let { user_id, res_id, amount } = req.body;
+
+    let dataOne = await modelSequelize.rate_res.findOne({
       where: {
-        res_id: id,
+        res_id,
+        user_id,
       },
     });
 
     if (dataOne) {
-      res.status(200).send(dataOne);
+      res.status(200).send("Người dùng đã đánh giá");
     } else {
-      res.status(400).send("Restaurant not found");
+      let date_rate = moment().format("YYYY-MM-DD HH:mm:ss").toString();
+      let model = { user_id, res_id, amount, date_rate };
+      await modelSequelize.rate_res.create(model);
+      res.status(200).send("Đánh giá Restaurant thành công");
     }
+  } catch (error) {
+    res.status(500).send("Backend error");
+  }
+};
+// lấy danh sách đánh giá và user của tất cả nhà hàng
+const getAllRestaurantAndUserRate = async (req, res) => {
+  try {
+    let dataAll = await modelSequelize.restaurant.findAll({
+      include: ["user_id_user_rate_res"],
+    });
+
+    res.status(200).send(dataAll);
+  } catch (error) {
+    res.status(500).send("Backend error");
+  }
+};
+// lấy danh sách đánh giá và user của một nhà hàng
+const getOneRestaurantAndUserRate = async (req, res) => {
+  try {
+    let { id } = req.params;
+    let dataOne = await modelSequelize.restaurant.findOne({
+      where: { res_id: id },
+      include: ["user_id_user_rate_res"],
+    });
+
+    res.status(200).send(dataOne);
   } catch (error) {
     res.status(500).send("Backend error");
   }
@@ -144,4 +241,9 @@ module.exports = {
   deleteRestaurant,
   getAllRestaurantAndUserLike,
   getOneRestaurantAndUserLike,
+  getAllRestaurantAndUserRate,
+  getOneRestaurantAndUserRate,
+  likeRestaurant,
+  unLikeRestaurant,
+  rateRestaurant,
 };

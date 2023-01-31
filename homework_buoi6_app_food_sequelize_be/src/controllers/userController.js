@@ -3,6 +3,7 @@ const sequelize = require("../models/index");
 const initModels = require("../models/init-models");
 const modelSequelize = initModels(sequelize);
 
+// 5 methods CRUD
 const getOneUser = async (req, res) => {
   try {
     let { id } = req.params;
@@ -23,7 +24,6 @@ const getOneUser = async (req, res) => {
     res.status(500).send("Backend error");
   }
 };
-
 const getAllUser = async (req, res) => {
   try {
     let userList = await modelSequelize.user.findAll();
@@ -33,7 +33,6 @@ const getAllUser = async (req, res) => {
     res.status(500).send("Backend error");
   }
 };
-
 const createUser = async (req, res) => {
   try {
     let { full_name, email, pass_word } = req.body;
@@ -48,7 +47,6 @@ const createUser = async (req, res) => {
     res.status(500).send("Backend error");
   }
 };
-
 const editUser = async (req, res) => {
   try {
     let { id } = req.params;
@@ -77,7 +75,6 @@ const editUser = async (req, res) => {
     res.status(500).send("Backend error");
   }
 };
-
 const deleteUser = async (req, res) => {
   try {
     let { id } = req.params;
@@ -104,10 +101,34 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// xử lý thêm order
+const createOrder = async (req, res) => {
+  try {
+    let { user_id, food_id, amount, code, arr_sub_id } = req.body;
+
+    let dataOne = await modelSequelize.order.findOne({
+      where: {
+        user_id,
+        food_id,
+      },
+    });
+    if (dataOne) {
+      res.status(200).send("Người dùng order lại món cũ");
+    } else {
+      let model = { user_id, food_id, amount, code, arr_sub_id };
+      await modelSequelize.order.create(model);
+      res.status(200).send("Thêm Order thành công");
+    }
+  } catch (error) {
+    res.status(500).send("Backend error");
+  }
+};
+
 module.exports = {
   getAllUser,
   getOneUser,
   createUser,
   editUser,
   deleteUser,
+  createOrder,
 };
